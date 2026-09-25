@@ -57,6 +57,12 @@ CSS = """
 [class*="st-key-card-construcao"] { border-top: 4px solid #FAB900 !important; }
 [class*="st-key-card-ideia"] { border-top: 4px solid #B8C4CC !important; }
 
+.st-key-hub-intro {
+  background: #F3F6F8; border: none !important; border-left: 4px solid #FAB900 !important;
+  border-radius: 12px !important; justify-content: center;
+}
+.st-key-hub-intro p { color: #003244; font-size: .92rem; line-height: 1.5; margin: 0; }
+
 .hub-head { display: flex; align-items: center; gap: .85rem; }
 .hub-logo {
   flex: 0 0 56px; height: 56px; border-radius: 14px; background: #F3F6F8;
@@ -179,10 +185,15 @@ def pagina_indicadores(catalogo: dict) -> None:
     cargas = ultimas_cargas()
     projetos = [p for g in gerencias for p in g.get("projeto", [])]
 
-    with st.container(horizontal=True):
-        st.metric("Indicadores no ar", sum(p.get("status") == "no ar" for p in projetos), border=True)
-        st.metric("Em construção", sum(p.get("status") == "em construção" for p in projetos), border=True)
-        st.metric("Gerências", len(gerencias), border=True)
+    col_intro, col_ar, col_construcao = st.columns([2, 1, 1])
+    with col_intro, st.container(border=True, height="stretch", key="hub-intro"):
+        st.markdown(
+            "**Todos os indicadores de Gente & Dados num só lugar.** "
+            "Eles estão organizados por gerência: clique no botão do card para abrir o painel, "
+            "que pede o próprio login. \"Atualizado em\" mostra quando os dados foram carregados pela última vez."
+        )
+    col_ar.metric("Indicadores no ar", sum(p.get("status") == "no ar" for p in projetos), border=True, height="stretch")
+    col_construcao.metric("Em construção", sum(p.get("status") == "em construção" for p in projetos), border=True, height="stretch")
 
     col_busca, col_status = st.columns([2, 3], vertical_alignment="bottom")
     termo = col_busca.text_input("Buscar", placeholder="Ex.: turnover, salário, Neon…", icon=":material/search:")
