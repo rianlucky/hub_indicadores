@@ -189,9 +189,10 @@ def pagina_indicadores(catalogo: dict) -> None:
     with col_intro, st.container(border=True, height="stretch", key="hub-intro"):
         st.markdown(
             "**O Hub de Indicadores reúne, num só endereço, os painéis e dashboards de Gente & Dados "
-            "da Pacaembu Construtora** — headcount, remuneração, movimentações, turnover e orçamento de pessoal. "
-            "Cada card resume o que o indicador mostra, de onde vêm os dados e quando foram atualizados pela última vez; "
-            "o botão leva direto ao painel, que tem acesso próprio."
+            "da Pacaembu Construtora.** Com informação confiável e atualizada sobre as pessoas da companhia, "
+            "lideranças e RH decidem com base em dados: planejam o quadro, tratam remuneração e carreira com "
+            "equidade e agem cedo sobre o que afeta a retenção. Cada card mostra de onde vêm os dados e quando "
+            "foram atualizados; o botão leva direto ao painel."
         )
     col_ar.metric("Indicadores no ar", sum(p.get("status") == "no ar" for p in projetos), border=True, height="stretch")
     col_construcao.metric("Em construção", sum(p.get("status") == "em construção" for p in projetos), border=True, height="stretch")
