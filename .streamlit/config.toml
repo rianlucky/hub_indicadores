@@ -1,0 +1,18 @@
+# Paleta oficial Pacaembu Construtora. Gotham Rounded não está disponível na web,
+# então usamos Nunito (Google Fonts), a arredondada mais próxima.
+[theme]
+base = "light"
+primaryColor = "#064D66"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F6F8"
+textColor = "#003244"
+linkColor = "#064D66"
+borderColor = "#DCE3E8"
+font = "Nunito:https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap"
+headingFont = "Nunito:https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap"
+
+[client]
+toolbarMode = "viewer"
+
+[server]
+enableStaticServing = true

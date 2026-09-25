@@ -1,0 +1,194 @@
+# Catálogo do Hub de Indicadores — Central de Gente & Dados
+#
+# Para adicionar um indicador: copie um bloco [[gerencia.projeto]] dentro da gerência
+# certa, preencha os campos, salve e recarregue a página do Hub.
+#
+# status: "no ar" | "em construção"  (qualquer outro valor, como "ideia", não aparece no Hub)
+# tipo do link: "streamlit" | "databricks-app" | "dashboard" | "power-bi" | "documento" | "outro"
+# Link sem url ("") aparece no Hub como "link pendente".
+# carga: tabela registrada em ops.v_ultima_carga (Neon); o card mostra a data da última carga dela.
+#        Sem carga (ou sem conexão), o card mostra o texto de "atualizacao".
+# logo: arquivo em static/logos/ (opcional; sem logo o card mostra as iniciais do projeto).
+
+[[gerencia]]
+nome = "Desenvolvimento Organizacional"
+icone = ":material/account_tree:"
+
+  [[gerencia.projeto]]
+  nome = "Headcount Total"
+  logo = "headcount.png"
+  descricao = "Headcount, alocação de mão de obra e evolução por data ou período."
+  status = "no ar"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "org.headcount_publico"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://headcount-total-pacaembu.streamlit.app/"
+
+  [[gerencia.projeto]]
+  nome = "Dados Demográficos"
+  descricao = "Perfil demográfico do quadro de colaboradores."
+  status = "no ar"
+  fonte = "Databricks"
+  atualizacao = "Conforme o Databricks"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir dashboard"
+    tipo = "dashboard"
+    url = "https://dbc-282e0e97-2525.cloud.databricks.com/dashboardsv3/01f159363c5a191fa68184e746b14223/published"
+
+[[gerencia]]
+nome = "Remuneração e Orçamento de Pessoas"
+icone = ":material/payments:"
+
+  [[gerencia.projeto]]
+  nome = "Aderência Salarial"
+  logo = "aderencia.png"
+  descricao = "Dispersão pessoa a pessoa: salário de cada colaborador ativo frente à referência de mercado (Carreira Muller)."
+  status = "no ar"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "core.fato_funcionario_ativo"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://aderencia-salarial-pacaembu.streamlit.app/"
+
+  [[gerencia.projeto]]
+  nome = "Remuneração & Equidade Salarial"
+  descricao = "Visão de remuneração e equidade salarial da Pacaembu Construtora."
+  status = "em construção"
+  fonte = "Databricks"
+  atualizacao = "Conforme o Databricks"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir dashboard"
+    tipo = "dashboard"
+    url = "https://dbc-282e0e97-2525.cloud.databricks.com/dashboardsv3/01f1811002911cd3a0f5a2f0d022fb09/published"
+
+  [[gerencia.projeto]]
+  nome = "Turnover"
+  descricao = "Dashboard de turnover da empresa no Databricks."
+  status = "no ar"
+  fonte = "Databricks"
+  atualizacao = "Conforme o Databricks"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir dashboard"
+    tipo = "dashboard"
+    url = "https://dbc-282e0e97-2525.cloud.databricks.com/dashboardsv3/01f166865ec21e77855c4eae7737969e/published"
+
+  [[gerencia.projeto]]
+  nome = "Movimentações"
+  descricao = "Promoções, aumentos salariais (mérito, promoção, enquadramento) e transferências."
+  status = "em construção"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "core.oracle_hcm_historico_movimentacao"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = ""
+
+  [[gerencia.projeto]]
+  nome = "Estudos Salariais"
+  descricao = "Fluxo de solicitação de estudos salariais: formulário, sugestão pela política PLREMU-01 e geração do PDF do estudo."
+  status = "em construção"
+  fonte = "Microsoft Forms + Neon + Databricks"
+  atualizacao = "A cada solicitação"
+  carga = "core.oracle_hcm_cargos"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir sistema"
+    tipo = "streamlit"
+    url = ""
+
+  [[gerencia.projeto]]
+  nome = "RealizaDO"
+  logo = "realizado.png"
+  descricao = "Orçado x Realizado da folha de pagamento por diretoria, centro de custo, colaborador e item de folha."
+  status = "no ar"
+  fonte = "Base PO 2026 + folha realizada"
+  atualizacao = "Mensal"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://realizado-pacaembu.streamlit.app/"
+
+  [[gerencia.projeto]]
+  nome = "TotalComp"
+  descricao = "Remuneração total por colaborador e por gestão (salário, benefícios e variáveis)."
+  status = "ideia"
+  fonte = "A definir"
+  atualizacao = "A definir"
+
+[[gerencia]]
+nome = "Indicadores Parceiros"
+icone = ":material/handshake:"
+
+  [[gerencia.projeto]]
+  nome = "Turnover Comercial"
+  logo = "turnover.png"
+  descricao = "Admissões, desligamentos, turnover e headcount da área comercial por cidade, cargo e gestor."
+  status = "no ar"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "turnover.people_rows"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://pacaembu-turnover-comercial.streamlit.app/"
+
+[[gerencia]]
+nome = "Folha e Benefícios"
+icone = ":material/receipt_long:"
+
+[[gerencia]]
+nome = "Gente e Cultura"
+icone = ":material/diversity_3:"
+
+[[gerencia]]
+nome = "ESG"
+icone = ":material/eco:"
+
+[[gerencia]]
+nome = "Facilities"
+icone = ":material/apartment:"
+
+
+# ---------------------------------------------------------------------------
+# Ideias e próximos passos do próprio Hub — guardadas aqui, não aparecem na página por enquanto
+# prioridade: "alta" | "média" | "baixa"
+
+[[ideia]]
+titulo = "Selo de atualização em cada indicador"
+descricao = "Mostrar no card quando os dados foram carregados pela última vez e se a carga deu erro, lendo ops.v_ultima_carga no Neon."
+prioridade = "alta"
+
+[[ideia]]
+titulo = "Publicar o Hub no Streamlit Cloud"
+descricao = "Hoje o Hub roda só em localhost. Publicar no Streamlit Cloud, como os outros painéis, para o time acessar por um link fixo."
+prioridade = "alta"
+
+[[ideia]]
+titulo = "Alerta quando a carga diária falhar"
+descricao = "E-mail ou mensagem no Teams quando alguma etapa do sync central terminar com erro."
+prioridade = "alta"
+
+[[ideia]]
+titulo = "Dicionário de indicadores"
+descricao = "Uma página por indicador com definição, fórmula, fonte, periodicidade e responsável — a mesma régua para todos os painéis."
+prioridade = "média"
+
+[[ideia]]
+titulo = "Catalogar os relatórios Power BI"
+descricao = "Incluir no Hub os .pbix da Carreira Muller (Dados Demográficos, Dados de Movimentação) com o link do Power BI Service, ou decidir quais migrar."
+prioridade = "média"
+
+[[ideia]]
+titulo = "Formulário \"sugerir um indicador\""
+descricao = "Gestores pedem indicadores novos pelo próprio Hub; os pedidos entram numa tabela e viram backlog priorizado."
+prioridade = "média"
+
+[[ideia]]
+titulo = "Uso do Hub"
+descricao = "Contar acessos por indicador para saber o que é mais consultado e o que pode ser aposentado."
+prioridade = "baixa"
