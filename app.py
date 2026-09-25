@@ -188,9 +188,10 @@ def pagina_indicadores(catalogo: dict) -> None:
     col_intro, col_ar, col_construcao = st.columns([2, 1, 1])
     with col_intro, st.container(border=True, height="stretch", key="hub-intro"):
         st.markdown(
-            "**Todos os indicadores de Gente & Dados num só lugar.** "
-            "Eles estão organizados por gerência: clique no botão do card para abrir o painel, "
-            "que pede o próprio login. \"Atualizado em\" mostra quando os dados foram carregados pela última vez."
+            "**O Hub de Indicadores reúne, num só endereço, os painéis e dashboards de Gente & Dados "
+            "da Pacaembu Construtora** — headcount, remuneração, movimentações, turnover e orçamento de pessoal. "
+            "Cada card resume o que o indicador mostra, de onde vêm os dados e quando foram atualizados pela última vez; "
+            "o botão leva direto ao painel, que tem acesso próprio."
         )
     col_ar.metric("Indicadores no ar", sum(p.get("status") == "no ar" for p in projetos), border=True, height="stretch")
     col_construcao.metric("Em construção", sum(p.get("status") == "em construção" for p in projetos), border=True, height="stretch")
