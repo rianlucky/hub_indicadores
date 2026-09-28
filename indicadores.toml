@@ -8,6 +8,8 @@
 # Link sem url ("") aparece no Hub como "link pendente".
 # carga: tabela registrada em ops.v_ultima_carga (Neon); o card mostra a data da última carga dela.
 #        Sem carga (ou sem conexão), o card mostra o texto de "atualizacao".
+# atualizacao_diaria: "HH:MM" de uma atualização que acontece todo dia (ex.: dashboards do
+#        Databricks, 07:00); o card mostra hoje nesse horário se já passou, senão ontem.
 # logo: arquivo em static/logos/ (opcional; sem logo o card mostra as iniciais do projeto).
 
 [[gerencia]]
@@ -32,7 +34,8 @@ icone = ":material/account_tree:"
   descricao = "Perfil demográfico do quadro de colaboradores."
   status = "no ar"
   fonte = "Databricks"
-  atualizacao = "Conforme o Databricks"
+  atualizacao = "Diária, 07:00 (Databricks)"
+  atualizacao_diaria = "07:00"
     [[gerencia.projeto.link]]
     rotulo = "Abrir dashboard"
     tipo = "dashboard"
@@ -60,7 +63,8 @@ icone = ":material/payments:"
   descricao = "Visão de remuneração e equidade salarial da Pacaembu Construtora."
   status = "em construção"
   fonte = "Databricks"
-  atualizacao = "Conforme o Databricks"
+  atualizacao = "Diária, 07:00 (Databricks)"
+  atualizacao_diaria = "07:00"
     [[gerencia.projeto.link]]
     rotulo = "Abrir dashboard"
     tipo = "dashboard"
@@ -71,7 +75,8 @@ icone = ":material/payments:"
   descricao = "Dashboard de turnover da empresa no Databricks."
   status = "no ar"
   fonte = "Databricks"
-  atualizacao = "Conforme o Databricks"
+  atualizacao = "Diária, 07:00 (Databricks)"
+  atualizacao_diaria = "07:00"
     [[gerencia.projeto.link]]
     rotulo = "Abrir dashboard"
     tipo = "dashboard"

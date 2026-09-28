@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 import tomllib
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta
 from html import escape
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -23,6 +23,7 @@ import streamlit as st
 
 ROOT = Path(__file__).resolve().parent
 CATALOGO = ROOT / "indicadores.toml"
+FUSO = ZoneInfo("America/Sao_Paulo")
 
 STATUS = {
     "no ar": ("No ar", "noar"),
@@ -125,9 +126,18 @@ def ultimas_cargas() -> tuple[dict[str, tuple[datetime, str]], str | None]:
 def texto_atualizacao(projeto: dict, cargas: dict) -> str:
     registro = cargas.get(projeto.get("carga", ""))
     if not registro or registro[0] is None:
+        diaria = projeto.get("atualizacao_diaria")
+        if diaria:
+            # Atualização fixa todo dia nesse horário: hoje, se já passou; senão, ontem.
+            hora, minuto = (int(x) for x in diaria.split(":"))
+            agora = datetime.now(FUSO)
+            ultima = agora.replace(hour=hora, minute=minuto, second=0, microsecond=0)
+            if agora < ultima:
+                ultima -= timedelta(days=1)
+            return ultima.strftime("%d/%m/%Y às %H:%M")
         return escape(projeto.get("atualizacao", ""))
     quando, status = registro
-    texto = quando.astimezone(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y às %H:%M")
+    texto = quando.astimezone(FUSO).strftime("%d/%m/%Y às %H:%M")
     if status != "ok":
         texto += ' · <span class="hub-erro">erro na última carga</span>'
     return texto
