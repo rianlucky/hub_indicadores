@@ -31,15 +31,16 @@ icone = ":material/account_tree:"
 
   [[gerencia.projeto]]
   nome = "Dados Demográficos"
-  descricao = "Perfil demográfico do quadro de colaboradores."
+  logo = "demograficos.png"
+  descricao = "Perfil do quadro de colaboradores: sexo, raça/cor, idade, geração, tempo de casa e locais de trabalho, com a evolução no período."
   status = "no ar"
-  fonte = "Databricks"
-  atualizacao = "Diária, 07:00 (Databricks)"
-  atualizacao_diaria = "07:00"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "core.fato_funcionario"
     [[gerencia.projeto.link]]
-    rotulo = "Abrir dashboard"
-    tipo = "dashboard"
-    url = "https://dbc-282e0e97-2525.cloud.databricks.com/dashboardsv3/01f159363c5a191fa68184e746b14223/published"
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://painel-demografico-pacaembu.streamlit.app/"
 
 [[gerencia]]
 nome = "Remuneração e Orçamento de Pessoas"
