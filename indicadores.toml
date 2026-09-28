@@ -61,15 +61,16 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Remuneração & Equidade Salarial"
-  descricao = "Visão de remuneração e equidade salarial da Pacaembu Construtora."
+  logo = "equidade.png"
+  descricao = "Remuneração x diversidade: diferença salarial por sexo, raça/cor, cargo e tempo de casa, setores desbalanceados ou concentrados e os indicadores reportados para RI e Sustentabilidade."
   status = "em construção"
-  fonte = "Databricks"
-  atualizacao = "Diária, 07:00 (Databricks)"
-  atualizacao_diaria = "07:00"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "core.fato_funcionario"
     [[gerencia.projeto.link]]
-    rotulo = "Abrir dashboard"
-    tipo = "dashboard"
-    url = "https://dbc-282e0e97-2525.cloud.databricks.com/dashboardsv3/01f1811002911cd3a0f5a2f0d022fb09/published"
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://remuneracao-equidade-pacaembu.streamlit.app/"
 
   [[gerencia.projeto]]
   nome = "Turnover"
