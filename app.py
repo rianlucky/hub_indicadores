@@ -96,17 +96,30 @@ def carregar_catalogo(mtime: float) -> dict:
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def ultimas_cargas() -> dict[str, tuple[datetime, str]]:
-    """{"schema.tabela": (concluido_em, status)} a partir de ops.v_ultima_carga no Neon.
-    Sem secrets ou sem conexão, devolve {} e os cards caem no texto de "atualizacao"."""
+def _ler_cargas(url: str) -> dict[str, tuple[datetime, str]]:
+    """{"schema.tabela": (concluido_em, status)} de ops.v_ultima_carga. Levanta exceção
+    em caso de falha — assim o erro não fica guardado no cache e a próxima visita tenta de novo."""
+    with psycopg2.connect(url, connect_timeout=5) as conn, conn.cursor() as cur:
+        cur.execute("SELECT schema_nome || '.' || tabela, concluido_em, status FROM ops.v_ultima_carga")
+        return {tabela: (quando, status) for tabela, quando, status in cur.fetchall()}
+
+
+def ultimas_cargas() -> tuple[dict[str, tuple[datetime, str]], str | None]:
+    """(cargas, motivo). Sem conexão devolve ({}, motivo) e os cards caem no texto de
+    "atualizacao". O motivo nunca inclui a URL nem a senha."""
     # [neon_hub] = app_hub, só leitura em ops.v_ultima_carga (migração 008).
     try:
         url = st.secrets["neon_hub"]["database_url"]
-        with psycopg2.connect(url, connect_timeout=5) as conn, conn.cursor() as cur:
-            cur.execute("SELECT schema_nome || '.' || tabela, concluido_em, status FROM ops.v_ultima_carga")
-            return {tabela: (quando, status) for tabela, quando, status in cur.fetchall()}
-    except Exception:  # noqa: BLE001 — o Hub continua de pé sem o Neon
-        return {}
+    except Exception:  # noqa: BLE001 — secrets.toml ausente ou sem o bloco
+        return {}, "o bloco [neon_hub] com database_url não foi encontrado nos Secrets"
+    try:
+        return _ler_cargas(url), None
+    except psycopg2.OperationalError as exc:
+        if "password authentication failed" in str(exc):
+            return {}, "o Neon recusou a senha do app_hub"
+        return {}, "não foi possível conectar ao Neon"
+    except Exception as exc:  # noqa: BLE001 — o Hub continua de pé sem o Neon
+        return {}, f"erro ao ler as cargas ({type(exc).__name__})"
 
 
 def texto_atualizacao(projeto: dict, cargas: dict) -> str:
@@ -182,7 +195,7 @@ def card_projeto(projeto: dict, cargas: dict) -> None:
 
 def pagina_indicadores(catalogo: dict) -> None:
     gerencias = catalogo.get("gerencia", [])
-    cargas = ultimas_cargas()
+    cargas, motivo_sem_datas = ultimas_cargas()
     projetos = [p for g in gerencias for p in g.get("projeto", [])]
 
     col_intro, col_ar, col_construcao = st.columns([2, 1, 1])
@@ -228,6 +241,9 @@ def pagina_indicadores(catalogo: dict) -> None:
 
     if not algum:
         st.info("Nenhum indicador encontrado com esse filtro.", icon=":material/search_off:")
+
+    if motivo_sem_datas:
+        st.caption(f":material/info: Datas de atualização indisponíveis: {motivo_sem_datas}.")
 
 
 st.set_page_config(page_title="Hub de Indicadores · Gente & Dados", page_icon=":material/hub:", layout="wide")
