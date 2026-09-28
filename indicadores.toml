@@ -72,15 +72,16 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Turnover"
-  descricao = "Dashboard de turnover da empresa no Databricks."
+  logo = "turnover-rh.png"
+  descricao = "Admissões, desligamentos e taxa de turnover por diretoria, área e perfil, com a visão de turnover voluntário."
   status = "no ar"
-  fonte = "Databricks"
-  atualizacao = "Diária, 07:00 (Databricks)"
-  atualizacao_diaria = "07:00"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "core.fato_funcionario"
     [[gerencia.projeto.link]]
-    rotulo = "Abrir dashboard"
-    tipo = "dashboard"
-    url = "https://dbc-282e0e97-2525.cloud.databricks.com/dashboardsv3/01f166865ec21e77855c4eae7737969e/published"
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://painel-turnover-pacaembu.streamlit.app/"
 
   [[gerencia.projeto]]
   nome = "Movimentações"
