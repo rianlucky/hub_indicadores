@@ -19,7 +19,7 @@ icone = ":material/account_tree:"
   [[gerencia.projeto]]
   nome = "Headcount Total"
   logo = "headcount.png"
-  descricao = "Headcount, alocação de mão de obra e evolução por data ou período."
+  descricao = "Quantas pessoas temos e onde estão: evolução e crescimento em 3 anos, diretorias, áreas, centros de custo, obras (com a curva de mobilização) e mapa, com o efetivo para exportar."
   status = "no ar"
   fonte = "Neon + Databricks"
   atualizacao = "Diária, 07:30 (sync central)"
