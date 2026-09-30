@@ -13,6 +13,8 @@
 # logo: arquivo em static/logos/ (opcional; sem logo o card mostra as iniciais do projeto).
 # rotulo_status: texto do selo de status no card, no lugar do padrão (opcional).
 # pausado: texto do balão do selo "Pausado" (opcional; sem ele, o selo não aparece).
+# novidade / novidade_data: o que mudou no painel e quando (AAAA-MM-DD). O card mostra o selo "Novidade"
+#        por 3 semanas, com o texto no balão ("O que mudou em dd/mm: ...").
 
 [[gerencia]]
 nome = "Desenvolvimento Organizacional"
@@ -20,6 +22,8 @@ icone = ":material/account_tree:"
 
   [[gerencia.projeto]]
   nome = "Headcount Total"
+  novidade = "recontratação da mesma pessoa em até 10 dias deixou de contar como desligamento; cards com a mesma altura."
+  novidade_data = 2026-09-30
   logo = "headcount.png"
   descricao = "Quantas pessoas temos e onde estão: evolução e crescimento em 3 anos, diretorias, áreas, centros de custo, obras (com a curva de mobilização) e mapa, com o efetivo para exportar."
   status = "no ar"
@@ -33,6 +37,8 @@ icone = ":material/account_tree:"
 
   [[gerencia.projeto]]
   nome = "Dados Demográficos"
+  novidade = "páginas novas: Diversidade (liderança por nível e retrato de cada frente), Evolução (quanto o quadro mudou) e Quem está entrando; retrato de cada gênero; filtros Frente, Nível, UF e Vínculo."
+  novidade_data = 2026-09-30
   logo = "demograficos.png"
   descricao = "Perfil do quadro: como é cada gênero e cada frente, diversidade na liderança, evolução no período, perfil de quem está entrando e locais de trabalho."
   status = "no ar"
@@ -50,6 +56,8 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Aderência Salarial"
+  novidade = "3 páginas (Analítico, Defasagem e Enquadramento, Cargo e Mercado); compa-ratio em razão (0,91); base Personalizado em cascata."
+  novidade_data = 2026-09-29
   logo = "aderencia.png"
   descricao = "Dispersão pessoa a pessoa: salário de cada colaborador ativo frente à referência de mercado (Carreira Muller)."
   status = "no ar"
@@ -63,6 +71,8 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Remuneração & Equidade Salarial"
+  novidade = "no ar; visões viraram páginas; liderança sem o conselho e população padrão = empregados (GRI 2-21), com opção de todos os ativos."
+  novidade_data = 2026-09-30
   logo = "equidade.png"
   descricao = "Remuneração x diversidade: diferença salarial por sexo, raça/cor, cargo e tempo de casa, setores desbalanceados ou concentrados e os indicadores reportados para RI e Sustentabilidade (GRI 2-21)."
   status = "no ar"
@@ -76,6 +86,8 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Turnover"
+  novidade = "páginas novas: Período de experiência, Retenção por turma e Perfil das saídas; cargos com mais pedidos de demissão; estagiários à parte; recontratação em até 10 dias não conta como desligamento."
+  novidade_data = 2026-09-30
   logo = "turnover-rh.png"
   descricao = "Admissões, desligamentos e taxa de turnover: voluntário, saídas no período de experiência, retenção de cada turma de contratação e onde o turnover se concentra (nível, frente, raça/cor, escolaridade)."
   status = "no ar"
@@ -89,9 +101,9 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Movimentações"
+  logo = "movimentacoes.png"
   descricao = "Promoções, aumentos salariais (mérito, promoção, enquadramento) e transferências."
   status = "em construção"
-  rotulo_status = "Em desenvolvimento"
   pausado = "Desenvolvimento pausado por inconsistência nos dados de origem: as movimentações do Oracle HCM não estão chegando completas desde junho/2026. A correção já foi solicitada ao suporte responsável."
   fonte = "Neon + Databricks"
   atualizacao = "Diária, 07:30 (sync central)"
@@ -103,9 +115,9 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Estudos Salariais"
+  logo = "estudos.png"
   descricao = "Fluxo de solicitação de estudos salariais: formulário, sugestão pela política PLREMU-01 e geração do PDF do estudo."
   status = "em construção"
-  rotulo_status = "Em desenvolvimento"
   pausado = "Desenvolvimento pausado enquanto avaliamos usar o SysAid como ferramenta de gestão das demandas de estudos salariais. Se for adotado, o fluxo de solicitação passa a ser feito por ele."
   fonte = "Microsoft Forms + Neon + Databricks"
   atualizacao = "A cada solicitação"
@@ -140,8 +152,10 @@ icone = ":material/handshake:"
 
   [[gerencia.projeto]]
   nome = "Turnover Comercial"
+  novidade = "Diretoria Comercial inteira (362 ativos); Equipe ampliada com Gerência Comercial; Gestor só com gerência; mapa Carto."
+  novidade_data = 2026-09-29
   logo = "turnover.png"
-  descricao = "Admissões, desligamentos, turnover e headcount da área comercial por cidade, cargo e gestor."
+  descricao = "Admissões, desligamentos, turnover e headcount da Diretoria Comercial por cidade, equipe, cargo e gestor, com a concentração da mão de obra no mapa."
   status = "no ar"
   fonte = "Neon + Databricks"
   atualizacao = "Diária, 07:30 (sync central)"

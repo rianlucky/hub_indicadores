@@ -3,6 +3,8 @@
 Página única com todos os indicadores, agrupados por gerência e projeto. O conteúdo
 vem de `indicadores.toml` — para incluir um indicador, edite só esse arquivo.
 Sem login: é só uma página de links, e cada painel tem a própria senha.
+Padrão visual dos painéis (skill padrao-painel-streamlit): cards `pp.kpi`, Nunito, fundo claro.
+Versão anterior (antes do padrão visual, 30/09/2026): tag git `hub-v1-antes-padrao-visual`.
 
     streamlit run app.py
 """
@@ -12,7 +14,7 @@ from __future__ import annotations
 import re
 import tomllib
 import unicodedata
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from html import escape
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -21,14 +23,19 @@ import psycopg2
 
 import streamlit as st
 
+import painel_padrao as pp
+
 ROOT = Path(__file__).resolve().parent
 CATALOGO = ROOT / "indicadores.toml"
 FUSO = ZoneInfo("America/Sao_Paulo")
+DIAS_NOVIDADE = 21  # o selo "Novidade" aparece por 3 semanas depois da data da mudança
 
+# status do toml -> (rótulo, classe). "em construção" continua sendo o valor no toml (compatível).
 STATUS = {
     "no ar": ("No ar", "noar"),
-    "em construção": ("Em construção", "construcao"),
+    "em construção": ("Em desenvolvimento", "construcao"),
 }
+FILTROS_STATUS = ["No ar", "Em desenvolvimento", "Pausado"]
 TIPO_LINK = {
     "streamlit": ":material/open_in_new:",
     "databricks-app": ":material/open_in_new:",
@@ -43,8 +50,9 @@ TIPO_LINK = {
 CSS = """
 <style>
 [class*="st-key-card-"] {
+  background: #FFFFFF;
   border-radius: 16px !important;
-  border: 1px solid #E3E9ED !important;
+  border: 1px solid #DCE5EA !important;
   box-shadow: 0 1px 2px rgba(0, 50, 68, .06), 0 4px 14px rgba(0, 50, 68, .05);
   transition: transform .15s ease, box-shadow .15s ease;
   overflow: hidden;
@@ -56,13 +64,13 @@ CSS = """
 }
 [class*="st-key-card-noar"] { border-top: 4px solid #064D66 !important; }
 [class*="st-key-card-construcao"] { border-top: 4px solid #FAB900 !important; }
+[class*="st-key-card-pausado"] { border-top: 4px solid #B8C4CC !important; }
 [class*="st-key-card-ideia"] { border-top: 4px solid #B8C4CC !important; }
 
-.st-key-hub-intro {
-  background: #F3F6F8; border: none !important; border-left: 4px solid #FAB900 !important;
-  border-radius: 12px !important; justify-content: center;
-}
-.st-key-hub-intro p { color: #003244; font-size: .92rem; line-height: 1.5; margin: 0; }
+.hub-intro { background: #FFFFFF; border: 1px solid #DCE5EA; border-left: 4px solid #FAB900; border-radius: 12px;
+  padding: .9rem 1.1rem; color: #003244; font-size: .92rem; line-height: 1.5; height: 100%; box-sizing: border-box; }
+.hub-intro b { color: #064D66; }
+@media (max-width: 640px) { .hub-intro-mais { display: none; } }
 
 .hub-head { display: flex; align-items: center; gap: .85rem; }
 .hub-logo {
@@ -72,30 +80,51 @@ CSS = """
 .hub-logo img { max-width: 40px; max-height: 40px; border-radius: 0; }
 .hub-iniciais { color: #064D66; font-weight: 800; font-size: 1.05rem; letter-spacing: .02em; }
 .hub-nome { font-weight: 800; font-size: 1.08rem; color: #003244; line-height: 1.2; }
+.hub-selos { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; margin-top: .3rem; }
 .hub-status {
-  display: inline-flex; align-items: center; gap: .35rem; margin-top: .3rem;
+  position: relative; display: inline-flex; align-items: center; gap: .35rem;
   font-size: .74rem; font-weight: 700; padding: .12rem .55rem; border-radius: 999px;
 }
 .hub-status::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: currentColor; }
 .hub-status.noar { color: #0B6B45; background: #E5F4EC; }
 .hub-status.construcao { color: #8A5B00; background: #FFF3D1; }
-.hub-status.ideia { color: #5B6B75; background: #EEF2F4; }
-.hub-selos { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
-/* "Pausado": selo cinza com a explicação num balão ao passar o mouse (ou tocar) */
-.hub-status.pausado { position: relative; color: #5B6B75; background: #EEF2F4; cursor: help; outline: none; }
-.hub-status.pausado::after {
+.hub-status.ideia, .hub-status.pausado { color: #5B6B75; background: #EEF2F4; }
+.hub-status.novidade { color: #FFFFFF; background: #F02727; }
+.hub-status.novidade::before { background: #FFFFFF; }
+/* selos com explicação (Pausado, Novidade): balão ao passar o mouse ou tocar */
+.hub-dica { cursor: help; outline: none; }
+.hub-dica::after {
   content: attr(data-dica); position: absolute; top: calc(100% + 8px); right: 0; z-index: 20;
-  width: max-content; max-width: 260px; white-space: normal; background: #003244; color: #FFFFFF;
+  width: max-content; max-width: 270px; white-space: normal; background: #003244; color: #FFFFFF;
   font-size: .76rem; font-weight: 500; line-height: 1.45; padding: .55rem .7rem; border-radius: 8px;
   box-shadow: 0 6px 18px rgba(0, 50, 68, .25); opacity: 0; visibility: hidden; transition: opacity .15s;
 }
-.hub-status.pausado:hover::after, .hub-status.pausado:focus::after { opacity: 1; visibility: visible; }
-[class*="st-key-card-"]:has(.hub-status.pausado:hover), [class*="st-key-card-"]:has(.hub-status.pausado:focus) { overflow: visible; z-index: 5; }
+.hub-dica:hover::after, .hub-dica:focus::after { opacity: 1; visibility: visible; }
+[class*="st-key-card-"]:has(.hub-dica:hover), [class*="st-key-card-"]:has(.hub-dica:focus) { overflow: visible; z-index: 5; }
 .hub-desc { color: #4A5E69; font-size: .9rem; line-height: 1.45; margin: .85rem 0 .75rem; }
-.hub-meta { background: #F7F9FA; border-radius: 10px; padding: .55rem .75rem; font-size: .8rem; }
-.hub-meta div { display: flex; gap: .5rem; padding: .12rem 0; color: #003244; }
-.hub-meta span { flex: 0 0 6.6rem; color: #7A8C96; font-weight: 600; }
+.hub-meta { background: #F5F8FA; border-radius: 10px; padding: .55rem .75rem; font-size: .8rem; }
+.hub-meta div { display: flex; gap: .5rem; padding: .12rem 0; color: #003244; align-items: center; }
+.hub-meta span.rot { flex: 0 0 6.6rem; color: #7A8C96; font-weight: 600; }
+.hub-ponto { width: .55rem; height: .55rem; border-radius: 50%; display: inline-block; flex: 0 0 .55rem; }
 .hub-erro { color: #C41E1E; font-weight: 700; }
+
+/* gerências: bloco que abre e fecha, título no padrão das seções dos painéis */
+[data-testid="stExpander"] details { background: transparent; border: none; border-bottom: 1px solid #DCE5EA; border-radius: 0; }
+[data-testid="stExpander"] summary { padding: .55rem .1rem; }
+[data-testid="stExpander"] summary p { color: #064D66; font-weight: 800; font-size: 1.12rem; }
+[data-testid="stExpander"] summary:hover p { color: #003244; }
+[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: .2rem 0 1rem; }
+/* celular: cards de resumo 2 por linha (o Streamlit empilha as colunas em telas estreitas) */
+@media (max-width: 640px) {
+  [data-testid="stHorizontalBlock"]:has(.pp-kpi) { flex-direction: row !important; flex-wrap: wrap !important; gap: .6rem !important; }
+  [data-testid="stHorizontalBlock"]:has(.pp-kpi) > [data-testid="stColumn"] {
+    flex: 1 1 calc(50% - .3rem) !important; width: calc(50% - .3rem) !important; min-width: calc(50% - .3rem) !important; }
+  [data-testid="stHorizontalBlock"]:has(.pp-kpi) > [data-testid="stColumn"]:not(:has(.pp-kpi)) {
+    flex: 1 1 100% !important; width: 100% !important; min-width: 100% !important; }
+  .pp-kpi-valor { font-size: 1.45rem !important; }
+}
+.hub-rodape { color: #7A8C96; font-size: .82rem; text-align: center; padding: 1.2rem 0 .4rem; border-top: 1px solid #DCE5EA; margin-top: 1rem; }
+.hub-rodape a { color: #064D66; font-weight: 700; }
 </style>
 """
 
@@ -119,7 +148,6 @@ def _ler_cargas(url: str) -> dict[str, tuple[datetime, str]]:
 def ultimas_cargas() -> tuple[dict[str, tuple[datetime, str]], str | None]:
     """(cargas, motivo). Sem conexão devolve ({}, motivo) e os cards caem no texto de
     "atualizacao". O motivo nunca inclui a URL nem a senha."""
-    # [neon_hub] = app_hub, só leitura em ops.v_ultima_carga (migração 008).
     try:
         url = st.secrets["neon_hub"]["database_url"]
     except Exception:  # noqa: BLE001 — secrets.toml ausente ou sem o bloco
@@ -128,38 +156,65 @@ def ultimas_cargas() -> tuple[dict[str, tuple[datetime, str]], str | None]:
         return _ler_cargas(url), None
     except psycopg2.OperationalError as exc:
         if "password authentication failed" in str(exc):
-            return {}, "o Neon recusou a senha do app_hub"
+            return {}, "o Neon recusou a senha do usuário do Hub"
         return {}, "não foi possível conectar ao Neon"
     except Exception as exc:  # noqa: BLE001 — o Hub continua de pé sem o Neon
         return {}, f"erro ao ler as cargas ({type(exc).__name__})"
 
 
-def texto_atualizacao(projeto: dict, cargas: dict) -> str:
+def atualizacao(projeto: dict, cargas: dict) -> tuple[str, str | None]:
+    """(texto, situação): situação "hoje" (verde), "antiga" (amarelo), "erro" (vermelho) ou None
+    (atualização mensal/texto fixo, sem ponto)."""
     registro = cargas.get(projeto.get("carga", ""))
+    agora = datetime.now(FUSO)
     if not registro or registro[0] is None:
         diaria = projeto.get("atualizacao_diaria")
         if diaria:
-            # Atualização fixa todo dia nesse horário: hoje, se já passou; senão, ontem.
+            # atualização fixa todo dia nesse horário: hoje, se já passou; senão, ontem
             hora, minuto = (int(x) for x in diaria.split(":"))
-            agora = datetime.now(FUSO)
             ultima = agora.replace(hour=hora, minute=minuto, second=0, microsecond=0)
             if agora < ultima:
                 ultima -= timedelta(days=1)
-            return ultima.strftime("%d/%m/%Y às %H:%M")
-        return escape(projeto.get("atualizacao", ""))
+            return ultima.strftime("%d/%m/%Y às %H:%M"), "hoje" if ultima.date() == agora.date() else "antiga"
+        return escape(projeto.get("atualizacao", "")), None
     quando, status = registro
-    texto = quando.astimezone(FUSO).strftime("%d/%m/%Y às %H:%M")
+    local = quando.astimezone(FUSO)
+    texto = local.strftime("%d/%m/%Y às %H:%M")
     if status != "ok":
-        texto += ' · <span class="hub-erro">erro na última carga</span>'
-    return texto
+        return texto + ' · <span class="hub-erro">erro na última carga</span>', "erro"
+    return texto, "hoje" if local.date() == agora.date() else "antiga"
+
+
+COR_SITUACAO = {"hoje": ("#16A34A", "Atualizado hoje"), "antiga": ("#FAB900", "Não atualizado hoje"),
+                "erro": ("#F02727", "A última carga falhou")}
+
+
+def pausado(projeto: dict) -> bool:
+    return bool(projeto.get("pausado"))
+
+
+def categoria(projeto: dict) -> str:
+    """Rótulo do filtro de status: No ar, Em desenvolvimento ou Pausado."""
+    if pausado(projeto):
+        return "Pausado"
+    return STATUS.get(projeto.get("status", ""), ("",))[0]
+
+
+def novidade(projeto: dict) -> tuple[str, str] | None:
+    """(data dd/mm, texto) se a última mudança do painel for recente (campos novidade / novidade_data)."""
+    texto, quando = projeto.get("novidade"), projeto.get("novidade_data")
+    if not texto or not quando:
+        return None
+    d = quando if isinstance(quando, date) else date.fromisoformat(str(quando))
+    if (datetime.now(FUSO).date() - d).days > DIAS_NOVIDADE:
+        return None
+    return f"{d:%d/%m}", texto
 
 
 def casa_busca(projeto: dict, gerencia: str, termo: str) -> bool:
     if not termo:
         return True
-    texto = " ".join(
-        str(projeto.get(k, "")) for k in ("nome", "descricao", "fonte")
-    ) + " " + gerencia
+    texto = " ".join(str(projeto.get(k, "")) for k in ("nome", "descricao", "fonte", "novidade")) + " " + gerencia
     return termo.lower() in texto.lower()
 
 
@@ -176,22 +231,29 @@ def _iniciais(nome: str) -> str:
 
 def cabecalho_card(projeto: dict, cargas: dict) -> str:
     rotulo, classe = STATUS.get(projeto.get("status", ""), ("Sem status", "ideia"))
-    rotulo = projeto.get("rotulo_status", rotulo)  # ex.: "Em desenvolvimento" no lugar de "Em construção"
+    rotulo = projeto.get("rotulo_status", rotulo)
     selos = f'<span class="hub-status {classe}">{escape(rotulo)}</span>'
-    if projeto.get("pausado"):
-        selos += (f'<span class="hub-status pausado" tabindex="0" data-dica="{escape(projeto["pausado"])}" '
+    if pausado(projeto):
+        selos += (f'<span class="hub-status pausado hub-dica" tabindex="0" data-dica="{escape(projeto["pausado"])}" '
                   f'aria-label="{escape(projeto["pausado"])}">Pausado</span>')
+    nov = novidade(projeto)
+    if nov:
+        dica = f"O que mudou em {nov[0]}: {nov[1]}"
+        selos += (f'<span class="hub-status novidade hub-dica" tabindex="0" data-dica="{escape(dica)}" '
+                  f'aria-label="{escape(dica)}">Novidade</span>')
     logo = projeto.get("logo")
     if logo and (ROOT / "static" / "logos" / logo).exists():
         tile = f'<div class="hub-logo"><img src="app/static/logos/{escape(logo)}" alt=""></div>'
     else:
         tile = f'<div class="hub-logo"><span class="hub-iniciais">{escape(_iniciais(projeto["nome"]))}</span></div>'
+    texto_atu, situacao = atualizacao(projeto, cargas)
+    ponto = ""
+    if situacao:
+        cor, dica = COR_SITUACAO[situacao]
+        ponto = f'<span class="hub-ponto" style="background:{cor}" title="{dica}"></span>'
     meta = "".join(
-        f"<div><span>{rotulo_meta}</span>{valor}</div>"
-        for rotulo_meta, valor in (
-            ("Fonte", escape(projeto.get("fonte", ""))),
-            ("Atualizado em", texto_atualizacao(projeto, cargas)),
-        )
+        f'<div><span class="rot">{rot}</span>{valor}</div>'
+        for rot, valor in (("Fonte", escape(projeto.get("fonte", ""))), ("Atualizado em", f"{ponto}{texto_atu}" if texto_atu else ""))
         if valor
     )
     return (
@@ -204,6 +266,8 @@ def cabecalho_card(projeto: dict, cargas: dict) -> str:
 
 def card_projeto(projeto: dict, cargas: dict) -> None:
     _, classe = STATUS.get(projeto.get("status", ""), ("", "ideia"))
+    if pausado(projeto):
+        classe = "pausado"
     with st.container(border=True, height="stretch", key=f"card-{classe}-{_slug(projeto['nome'])}"):
         st.html(cabecalho_card(projeto, cargas))
         links = projeto.get("link", [])
@@ -219,62 +283,79 @@ def card_projeto(projeto: dict, cargas: dict) -> None:
                     st.button(f"{link['rotulo']} · link pendente", icon=":material/link_off:", disabled=True, key=f"{projeto['nome']}-{link['rotulo']}")
 
 
+def resumo_gerencia(projetos: list[dict]) -> str:
+    """ "2 no ar · 1 em desenvolvimento · 1 pausado" (só o que existe)."""
+    cont = {c: sum(categoria(p) == c for p in projetos) for c in FILTROS_STATUS}
+    partes = [f"{cont['No ar']} no ar" if cont["No ar"] else "",
+              f"{cont['Em desenvolvimento']} em desenvolvimento" if cont["Em desenvolvimento"] else "",
+              f"{cont['Pausado']} {'pausado' if cont['Pausado'] == 1 else 'pausados'}" if cont["Pausado"] else ""]
+    return " · ".join(p for p in partes if p) or "em breve"
+
+
 def pagina_indicadores(catalogo: dict) -> None:
     gerencias = catalogo.get("gerencia", [])
     cargas, motivo_sem_datas = ultimas_cargas()
     projetos = [p for g in gerencias for p in g.get("projeto", [])]
+    no_ar = [p for p in projetos if categoria(p) == "No ar"]
+    em_dev = [p for p in projetos if p.get("status") == "em construção"]
+    pausados = sum(pausado(p) for p in em_dev)
 
-    col_intro, col_ar, col_construcao = st.columns([2, 1, 1])
-    with col_intro, st.container(border=True, height="stretch", key="hub-intro"):
-        st.markdown(
-            "**O Hub de Indicadores reúne, num só endereço, os painéis e dashboards de Gente & Dados "
-            "da Pacaembu Construtora.** Com informação confiável e atualizada sobre as pessoas da companhia, "
-            "lideranças e RH decidem com base em dados: planejam o quadro, tratam remuneração e carreira com "
-            "equidade e agem cedo sobre o que afeta a retenção. Cada card mostra de onde vêm os dados e quando "
-            "foram atualizados; o botão leva direto ao painel."
-        )
-    col_ar.metric("Indicadores no ar", sum(p.get("status") == "no ar" for p in projetos), border=True, height="stretch")
-    col_construcao.metric("Em construção", sum(p.get("status") == "em construção" for p in projetos), border=True, height="stretch")
+    col_intro, col_ar, col_dev = st.columns([2, 1, 1])
+    with col_intro:
+        st.html(
+            '<div class="hub-intro"><b>O Hub de Indicadores reúne, num só endereço, os painéis e dashboards de Gente & Dados '
+            'da Pacaembu Construtora.</b><span class="hub-intro-mais"> Com informação confiável e atualizada sobre as pessoas '
+            'da companhia, lideranças e RH decidem com base em dados: planejam o quadro, tratam remuneração e carreira com '
+            'equidade e agem cedo sobre o que afeta a retenção. Cada card mostra de onde vêm os dados e quando foram '
+            'atualizados; o botão leva direto ao painel.</span></div>')
+    with col_ar:
+        pp.kpi("Painéis no ar", str(len(no_ar)), "rodando para as gerências", pp.AZUL)
+    with col_dev:
+        pp.kpi("Em desenvolvimento", str(len(em_dev)),
+               f"{pausados} {'pausado' if pausados == 1 else 'pausados'}" if pausados else "em construção", pp.CINZA_TXT)
 
     col_busca, col_status = st.columns([2, 3], vertical_alignment="bottom")
     termo = col_busca.text_input("Buscar", placeholder="Ex.: turnover, salário, Neon…", icon=":material/search:")
-    filtro_status = col_status.pills(
-        "Status", [v[0] for v in STATUS.values()], selection_mode="multi", default=["No ar", "Em construção"]
-    )
-    status_ok = {k for k, v in STATUS.items() if v[0] in (filtro_status or [])}
+    filtro_status = col_status.pills("Status", FILTROS_STATUS, selection_mode="multi", default=FILTROS_STATUS) or FILTROS_STATUS
 
     algum = False
     for gerencia in gerencias:
-        visiveis = [
-            p for p in gerencia.get("projeto", [])
-            if p.get("status") in (status_ok or STATUS) and casa_busca(p, gerencia["nome"], termo)
-        ]
-        vazia = not gerencia.get("projeto")
+        todos = gerencia.get("projeto", [])
+        visiveis = [p for p in todos if categoria(p) in filtro_status and casa_busca(p, gerencia["nome"], termo)]
+        vazia = not todos
         # Gerência sem nenhum projeto aparece como "em breve" (menos durante uma busca);
         # gerência com projetos mas nenhum passando no filtro some.
         if (vazia and termo) or (not vazia and not visiveis):
             continue
         algum = True
-        st.subheader(f"{gerencia.get('icone', '')} {gerencia['nome']}", divider="gray")
-        if vazia:
-            st.caption(":material/hourglass_empty: Em breve — nenhum indicador publicado ainda.")
-            continue
-        for i in range(0, len(visiveis), 3):
-            cols = st.columns(3)
-            for col, projeto in zip(cols, visiveis[i:i + 3]):
-                with col:
-                    card_projeto(projeto, cargas)
+        # gerência "em breve" começa fechada; as que têm painel, abertas
+        with st.expander(f"{gerencia.get('icone', '')} {gerencia['nome']}  ·  {resumo_gerencia(todos)}", expanded=not vazia):
+            if vazia:
+                st.caption(":material/hourglass_empty: Em breve — nenhum indicador publicado ainda.")
+                continue
+            for i in range(0, len(visiveis), 3):
+                cols = st.columns(3)
+                for col, projeto in zip(cols, visiveis[i:i + 3]):
+                    with col:
+                        card_projeto(projeto, cargas)
 
     if not algum:
         st.info("Nenhum indicador encontrado com esse filtro.", icon=":material/search_off:")
-
     if motivo_sem_datas:
         st.caption(f":material/info: Datas de atualização indisponíveis: {motivo_sem_datas}.")
 
+    try:
+        email = st.secrets["app"]["email_suporte"]
+    except Exception:  # noqa: BLE001 — sem o bloco [app], o rodapé sai sem o e-mail
+        email = None
+    contato = f'Dúvidas ou pedido de acesso: <a href="mailto:{escape(email)}">{escape(email)}</a> · ' if email else ""
+    st.html(f'<div class="hub-rodape">{contato}Central de Gente & Dados · Pacaembu Construtora</div>')
 
-st.set_page_config(page_title="Hub de Indicadores · Gente & Dados", page_icon=":material/hub:", layout="wide")
+
+st.set_page_config(page_title="Hub de Indicadores · Pacaembu Construtora", page_icon=str(ROOT / "static" / "icone-hub.png"), layout="wide")
 
 catalogo = carregar_catalogo(CATALOGO.stat().st_mtime)
+st.html(pp._CSS_CORPO)  # cards pp.kpi, seções e notas no padrão dos painéis
 st.html(CSS)
 
 with st.container(horizontal=True, vertical_alignment="center", gap="medium"):
