@@ -80,6 +80,17 @@ CSS = """
 .hub-status.noar { color: #0B6B45; background: #E5F4EC; }
 .hub-status.construcao { color: #8A5B00; background: #FFF3D1; }
 .hub-status.ideia { color: #5B6B75; background: #EEF2F4; }
+.hub-selos { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+/* "Pausado": selo cinza com a explicação num balão ao passar o mouse (ou tocar) */
+.hub-status.pausado { position: relative; color: #5B6B75; background: #EEF2F4; cursor: help; outline: none; }
+.hub-status.pausado::after {
+  content: attr(data-dica); position: absolute; top: calc(100% + 8px); right: 0; z-index: 20;
+  width: max-content; max-width: 260px; white-space: normal; background: #003244; color: #FFFFFF;
+  font-size: .76rem; font-weight: 500; line-height: 1.45; padding: .55rem .7rem; border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 50, 68, .25); opacity: 0; visibility: hidden; transition: opacity .15s;
+}
+.hub-status.pausado:hover::after, .hub-status.pausado:focus::after { opacity: 1; visibility: visible; }
+[class*="st-key-card-"]:has(.hub-status.pausado:hover), [class*="st-key-card-"]:has(.hub-status.pausado:focus) { overflow: visible; z-index: 5; }
 .hub-desc { color: #4A5E69; font-size: .9rem; line-height: 1.45; margin: .85rem 0 .75rem; }
 .hub-meta { background: #F7F9FA; border-radius: 10px; padding: .55rem .75rem; font-size: .8rem; }
 .hub-meta div { display: flex; gap: .5rem; padding: .12rem 0; color: #003244; }
@@ -165,6 +176,11 @@ def _iniciais(nome: str) -> str:
 
 def cabecalho_card(projeto: dict, cargas: dict) -> str:
     rotulo, classe = STATUS.get(projeto.get("status", ""), ("Sem status", "ideia"))
+    rotulo = projeto.get("rotulo_status", rotulo)  # ex.: "Em desenvolvimento" no lugar de "Em construção"
+    selos = f'<span class="hub-status {classe}">{escape(rotulo)}</span>'
+    if projeto.get("pausado"):
+        selos += (f'<span class="hub-status pausado" tabindex="0" data-dica="{escape(projeto["pausado"])}" '
+                  f'aria-label="{escape(projeto["pausado"])}">Pausado</span>')
     logo = projeto.get("logo")
     if logo and (ROOT / "static" / "logos" / logo).exists():
         tile = f'<div class="hub-logo"><img src="app/static/logos/{escape(logo)}" alt=""></div>'
@@ -180,7 +196,7 @@ def cabecalho_card(projeto: dict, cargas: dict) -> str:
     )
     return (
         f'<div class="hub-head">{tile}<div><div class="hub-nome">{escape(projeto["nome"])}</div>'
-        f'<span class="hub-status {classe}">{rotulo}</span></div></div>'
+        f'<div class="hub-selos">{selos}</div></div></div>'
         f'<p class="hub-desc">{escape(projeto.get("descricao", ""))}</p>'
         + (f'<div class="hub-meta">{meta}</div>' if meta else "")
     )

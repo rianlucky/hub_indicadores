@@ -11,6 +11,8 @@
 # atualizacao_diaria: "HH:MM" de uma atualização que acontece todo dia (ex.: dashboards do
 #        Databricks, 07:00); o card mostra hoje nesse horário se já passou, senão ontem.
 # logo: arquivo em static/logos/ (opcional; sem logo o card mostra as iniciais do projeto).
+# rotulo_status: texto do selo de status no card, no lugar do padrão (opcional).
+# pausado: texto do balão do selo "Pausado" (opcional; sem ele, o selo não aparece).
 
 [[gerencia]]
 nome = "Desenvolvimento Organizacional"
@@ -89,6 +91,8 @@ icone = ":material/payments:"
   nome = "Movimentações"
   descricao = "Promoções, aumentos salariais (mérito, promoção, enquadramento) e transferências."
   status = "em construção"
+  rotulo_status = "Em desenvolvimento"
+  pausado = "Desenvolvimento pausado por inconsistência nos dados de origem: as movimentações do Oracle HCM não estão chegando completas desde junho/2026. A correção já foi solicitada ao suporte responsável."
   fonte = "Neon + Databricks"
   atualizacao = "Diária, 07:30 (sync central)"
   carga = "core.oracle_hcm_historico_movimentacao"
