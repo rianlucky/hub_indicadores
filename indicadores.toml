@@ -165,6 +165,20 @@ icone = ":material/handshake:"
     tipo = "streamlit"
     url = "https://pacaembu-turnover-comercial.streamlit.app/"
 
+  [[gerencia.projeto]]
+  nome = "Exames Ocupacionais"
+  logo = "exames.png"
+  descricao = "SIMULAÇÃO — exemplo para Segurança do Trabalho. Exames admissionais, demissionais, periódicos e de transferência: realizados, pendentes, atrasados e o que vence nos próximos dias, onde atrasa e o passivo trabalhista. Início e prazo de cada exame são reais; a data de realização é simulada até a integração com a clínica."
+  status = "em construção"
+  rotulo_status = "Em desenvolvimento · simulação"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "core.fato_funcionario"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://exames-ocupacionais-pacaembu.streamlit.app/"
+
 [[gerencia]]
 nome = "Folha e Benefícios"
 icone = ":material/receipt_long:"
