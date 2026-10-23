@@ -101,13 +101,27 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Movimentações"
+  novidade = "no ar com o histórico completo do Oracle HCM, atualizado todo dia; 3 páginas (Visão geral, Aumentos salariais, Transferências); taxa de movimentação pelos ativos do mesmo filtro; tempo até a 1ª promoção e compressão salarial dos promovidos."
+  novidade_data = 2026-10-23
   logo = "movimentacoes.png"
-  descricao = "Promoções, aumentos salariais (mérito, promoção, enquadramento) e transferências."
-  status = "em construção"
-  pausado = "Desenvolvimento pausado por inconsistência nos dados de origem: as movimentações do Oracle HCM não estão chegando completas desde junho/2026. A correção já foi solicitada ao suporte responsável."
-  fonte = "Neon + Databricks"
+  descricao = "Promoções, aumentos salariais (mérito, enquadramento, equiparação) e transferências: totais pela regra V3, % e R$ de aumento por tipo, diretoria e nível, tempo até a 1ª promoção e quem segue na empresa depois de transferido."
+  status = "no ar"
+  fonte = "Neon (Oracle HCM)"
   atualizacao = "Diária, 07:30 (sync central)"
   carga = "core.oracle_hcm_historico_movimentacao"
+    [[gerencia.projeto.link]]
+    rotulo = "Abrir painel"
+    tipo = "streamlit"
+    url = "https://movimentacoes-transferencias-pacaembu.streamlit.app/"
+
+  [[gerencia.projeto]]
+  nome = "MPs"
+  logo = "mps.png"
+  descricao = "Movimentações de pessoal aprovadas no Oracle HCM: volume por tipo, MPs por 100 colaboradores, onde acontecem e tempo de aprovação."
+  status = "em construção"
+  fonte = "Neon + Databricks"
+  atualizacao = "Diária, 07:30 (sync central)"
+  carga = "core.mp_aprovada"
     [[gerencia.projeto.link]]
     rotulo = "Abrir painel"
     tipo = "streamlit"
