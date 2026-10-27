@@ -35,7 +35,7 @@ STATUS = {
     "no ar": ("No ar", "noar"),
     "em construção": ("Em desenvolvimento", "construcao"),
 }
-FILTROS_STATUS = ["No ar", "Em desenvolvimento", "Pausado"]
+FILTROS_STATUS = ["No ar", "Em desenvolvimento", "Pausado", "Desativado"]
 TIPO_LINK = {
     "streamlit": ":material/open_in_new:",
     "databricks-app": ":material/open_in_new:",
@@ -66,6 +66,8 @@ CSS = """
 [class*="st-key-card-construcao"] { border-top: 4px solid #FAB900 !important; }
 [class*="st-key-card-pausado"] { border-top: 4px solid #B8C4CC !important; }
 [class*="st-key-card-ideia"] { border-top: 4px solid #B8C4CC !important; }
+[class*="st-key-card-desativado"] { border-top: 4px solid #F02727 !important; background: #F7F9FA; }
+[class*="st-key-card-desativado"] .hub-logo, [class*="st-key-card-desativado"] .hub-desc { opacity: .55; filter: grayscale(1); }
 
 .hub-intro { background: #FFFFFF; border: 1px solid #DCE5EA; border-left: 4px solid #FAB900; border-radius: 12px;
   padding: .9rem 1.1rem; color: #003244; font-size: .92rem; line-height: 1.5; height: 100%; box-sizing: border-box; }
@@ -91,7 +93,8 @@ CSS = """
 .hub-status.ideia, .hub-status.pausado { color: #5B6B75; background: #EEF2F4; }
 .hub-status.novidade { color: #FFFFFF; background: #F02727; }
 .hub-status.novidade::before { background: #FFFFFF; }
-/* selos com explicação (Pausado, Novidade): balão ao passar o mouse ou tocar */
+.hub-status.desativado { color: #C41E1E; background: #FDE8E8; }
+/* selos com explicação (Pausado, Desativado, Novidade): balão ao passar o mouse ou tocar */
 .hub-dica { cursor: help; outline: none; }
 .hub-dica::after {
   content: attr(data-dica); position: absolute; top: calc(100% + 8px); right: 0; z-index: 20;
@@ -193,8 +196,14 @@ def pausado(projeto: dict) -> bool:
     return bool(projeto.get("pausado"))
 
 
+def desativado(projeto: dict) -> bool:
+    return bool(projeto.get("desativado"))
+
+
 def categoria(projeto: dict) -> str:
-    """Rótulo do filtro de status: No ar, Em desenvolvimento ou Pausado."""
+    """Rótulo do filtro de status: No ar, Em desenvolvimento, Pausado ou Desativado."""
+    if desativado(projeto):
+        return "Desativado"
     if pausado(projeto):
         return "Pausado"
     return STATUS.get(projeto.get("status", ""), ("",))[0]
@@ -233,10 +242,14 @@ def cabecalho_card(projeto: dict, cargas: dict) -> str:
     rotulo, classe = STATUS.get(projeto.get("status", ""), ("Sem status", "ideia"))
     rotulo = projeto.get("rotulo_status", rotulo)
     selos = f'<span class="hub-status {classe}">{escape(rotulo)}</span>'
-    if pausado(projeto):
+    if desativado(projeto):
+        # desativado substitui os outros selos (status, Pausado, Novidade)
+        selos = (f'<span class="hub-status desativado hub-dica" tabindex="0" data-dica="{escape(projeto["desativado"])}" '
+                 f'aria-label="{escape(projeto["desativado"])}">Desativado</span>')
+    elif pausado(projeto):
         selos += (f'<span class="hub-status pausado hub-dica" tabindex="0" data-dica="{escape(projeto["pausado"])}" '
                   f'aria-label="{escape(projeto["pausado"])}">Pausado</span>')
-    nov = novidade(projeto)
+    nov = None if desativado(projeto) else novidade(projeto)
     if nov:
         dica = f"O que mudou em {nov[0]}: {nov[1]}"
         selos += (f'<span class="hub-status novidade hub-dica" tabindex="0" data-dica="{escape(dica)}" '
@@ -246,7 +259,7 @@ def cabecalho_card(projeto: dict, cargas: dict) -> str:
         tile = f'<div class="hub-logo"><img src="app/static/logos/{escape(logo)}" alt=""></div>'
     else:
         tile = f'<div class="hub-logo"><span class="hub-iniciais">{escape(_iniciais(projeto["nome"]))}</span></div>'
-    texto_atu, situacao = atualizacao(projeto, cargas)
+    texto_atu, situacao = ("", None) if desativado(projeto) else atualizacao(projeto, cargas)
     ponto = ""
     if situacao:
         cor, dica = COR_SITUACAO[situacao]
@@ -266,7 +279,9 @@ def cabecalho_card(projeto: dict, cargas: dict) -> str:
 
 def card_projeto(projeto: dict, cargas: dict) -> None:
     _, classe = STATUS.get(projeto.get("status", ""), ("", "ideia"))
-    if pausado(projeto):
+    if desativado(projeto):
+        classe = "desativado"
+    elif pausado(projeto):
         classe = "pausado"
     with st.container(border=True, height="stretch", key=f"card-{classe}-{_slug(projeto['nome'])}"):
         st.html(cabecalho_card(projeto, cargas))
@@ -277,30 +292,38 @@ def card_projeto(projeto: dict, cargas: dict) -> None:
         with st.container(horizontal=True, gap="small"):
             for n, link in enumerate(links):
                 icone_link = TIPO_LINK.get(link.get("tipo", "outro"), ":material/link:")
-                if link.get("url"):
+                if desativado(projeto):
+                    st.button("Painel desativado", icon=":material/block:", disabled=True, key=f"{projeto['nome']}-{link['rotulo']}")
+                elif link.get("url"):
                     st.link_button(link["rotulo"], link["url"], icon=icone_link, type="primary" if n == 0 else "secondary")
                 else:
                     st.button(f"{link['rotulo']} · link pendente", icon=":material/link_off:", disabled=True, key=f"{projeto['nome']}-{link['rotulo']}")
 
 
 def resumo_gerencia(projetos: list[dict]) -> str:
-    """ "2 no ar · 1 em desenvolvimento · 1 pausado" (só o que existe)."""
+    """ "2 no ar · 1 em desenvolvimento · 1 pausado · 3 desativados" (só o que existe)."""
     cont = {c: sum(categoria(p) == c for p in projetos) for c in FILTROS_STATUS}
     partes = [f"{cont['No ar']} no ar" if cont["No ar"] else "",
               f"{cont['Em desenvolvimento']} em desenvolvimento" if cont["Em desenvolvimento"] else "",
-              f"{cont['Pausado']} {'pausado' if cont['Pausado'] == 1 else 'pausados'}" if cont["Pausado"] else ""]
+              f"{cont['Pausado']} {'pausado' if cont['Pausado'] == 1 else 'pausados'}" if cont["Pausado"] else "",
+              f"{cont['Desativado']} {'desativado' if cont['Desativado'] == 1 else 'desativados'}" if cont["Desativado"] else ""]
     return " · ".join(p for p in partes if p) or "em breve"
 
 
 def pagina_indicadores(catalogo: dict) -> None:
     gerencias = catalogo.get("gerencia", [])
-    cargas, motivo_sem_datas = ultimas_cargas()
     projetos = [p for g in gerencias for p in g.get("projeto", [])]
+    # só consulta o Neon se algum card ativo depende de carga (desativados não mostram data)
+    if any(p.get("carga") and not desativado(p) for p in projetos):
+        cargas, motivo_sem_datas = ultimas_cargas()
+    else:
+        cargas, motivo_sem_datas = {}, None
     no_ar = [p for p in projetos if categoria(p) == "No ar"]
-    em_dev = [p for p in projetos if p.get("status") == "em construção"]
+    em_dev = [p for p in projetos if p.get("status") == "em construção" and not desativado(p)]
     pausados = sum(pausado(p) for p in em_dev)
+    desativados = sum(desativado(p) for p in projetos)
 
-    col_intro, col_ar, col_dev = st.columns([2, 1, 1])
+    col_intro, col_ar, col_dev, col_off = st.columns([2, 1, 1, 1])
     with col_intro:
         st.html(
             '<div class="hub-intro"><b>O Hub de Indicadores reúne, num só endereço, os painéis e dashboards de Gente & Dados '
@@ -313,6 +336,8 @@ def pagina_indicadores(catalogo: dict) -> None:
     with col_dev:
         pp.kpi("Em desenvolvimento", str(len(em_dev)),
                f"{pausados} {'pausado' if pausados == 1 else 'pausados'}" if pausados else "em construção", pp.CINZA_TXT)
+    with col_off:
+        pp.kpi("Desativados", str(desativados), "fora do ar no momento", pp.CINZA_TXT)
 
     col_busca, col_status = st.columns([2, 3], vertical_alignment="bottom")
     termo = col_busca.text_input("Buscar", placeholder="Ex.: turnover, salário, Neon…", icon=":material/search:")

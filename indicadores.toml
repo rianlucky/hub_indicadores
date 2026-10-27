@@ -13,6 +13,8 @@
 # logo: arquivo em static/logos/ (opcional; sem logo o card mostra as iniciais do projeto).
 # rotulo_status: texto do selo de status no card, no lugar do padrão (opcional).
 # pausado: texto do balão do selo "Pausado" (opcional; sem ele, o selo não aparece).
+# desativado: texto do balão do selo "Desativado" (opcional). O card fica cinza, sem data de atualização
+#        e com o botão travado; para reativar, basta apagar a linha.
 # novidade / novidade_data: o que mudou no painel e quando (AAAA-MM-DD). O card mostra o selo "Novidade"
 #        por 3 semanas, com o texto no balão ("O que mudou em dd/mm: ...").
 
@@ -22,6 +24,7 @@ icone = ":material/account_tree:"
 
   [[gerencia.projeto]]
   nome = "Headcount Total"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   novidade = "recontratação da mesma pessoa em até 10 dias deixou de contar como desligamento; cards com a mesma altura."
   novidade_data = 2026-09-30
   logo = "headcount.png"
@@ -37,6 +40,7 @@ icone = ":material/account_tree:"
 
   [[gerencia.projeto]]
   nome = "Dados Demográficos"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   novidade = "páginas novas: Diversidade (liderança por nível e retrato de cada frente), Evolução (quanto o quadro mudou) e Quem está entrando; retrato de cada gênero; filtros Frente, Nível, UF e Vínculo."
   novidade_data = 2026-09-30
   logo = "demograficos.png"
@@ -56,6 +60,7 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Aderência Salarial"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   novidade = "3 páginas (Analítico, Defasagem e Enquadramento, Cargo e Mercado); compa-ratio em razão (0,91); base Personalizado em cascata."
   novidade_data = 2026-09-29
   logo = "aderencia.png"
@@ -71,6 +76,7 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Remuneração & Equidade Salarial"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   novidade = "no ar; visões viraram páginas; liderança sem o conselho e população padrão = empregados (GRI 2-21), com opção de todos os ativos."
   novidade_data = 2026-09-30
   logo = "equidade.png"
@@ -86,6 +92,7 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Turnover"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   novidade = "páginas novas: Período de experiência, Retenção por turma e Perfil das saídas; cargos com mais pedidos de demissão; estagiários à parte; recontratação em até 10 dias não conta como desligamento."
   novidade_data = 2026-09-30
   logo = "turnover-rh.png"
@@ -101,6 +108,7 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Movimentações"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   novidade = "no ar com o histórico completo do Oracle HCM, atualizado todo dia; 3 páginas (Visão geral, Aumentos salariais, Transferências); taxa de movimentação pelos ativos do mesmo filtro; tempo até a 1ª promoção e compressão salarial dos promovidos."
   novidade_data = 2026-10-23
   logo = "movimentacoes.png"
@@ -116,6 +124,7 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "MPs"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   logo = "mps.png"
   descricao = "Movimentações de pessoal aprovadas no Oracle HCM: volume por tipo, MPs por 100 colaboradores, onde acontecem e tempo de aprovação."
   status = "em construção"
@@ -129,6 +138,7 @@ icone = ":material/payments:"
 
   [[gerencia.projeto]]
   nome = "Estudos Salariais"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   logo = "estudos.png"
   descricao = "Fluxo de solicitação de estudos salariais: formulário, sugestão pela política PLREMU-01 e geração do PDF do estudo."
   status = "em construção"
@@ -166,6 +176,7 @@ icone = ":material/handshake:"
 
   [[gerencia.projeto]]
   nome = "Turnover Comercial"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   novidade = "Diretoria Comercial inteira (362 ativos); Equipe ampliada com Gerência Comercial; Gestor só com gerência; mapa Carto."
   novidade_data = 2026-09-29
   logo = "turnover.png"
@@ -181,6 +192,7 @@ icone = ":material/handshake:"
 
   [[gerencia.projeto]]
   nome = "Exames Ocupacionais"
+  desativado = "Painel fora do ar: a base de dados que alimentava este indicador foi desligada."
   logo = "exames.png"
   descricao = "SIMULAÇÃO — exemplo para Segurança do Trabalho. Exames admissionais, demissionais, periódicos e de transferência: realizados, pendentes, atrasados e o que vence nos próximos dias, onde atrasa e o passivo trabalhista. Início e prazo de cada exame são reais; a data de realização é simulada até a integração com a clínica."
   status = "em construção"
